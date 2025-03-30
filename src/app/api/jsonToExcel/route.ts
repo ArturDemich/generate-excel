@@ -14,6 +14,11 @@ export async function POST(req: NextRequest) {
     try {
         const jsonData = await req.json();
 
+        // Validate required fields
+        if (!jsonData || !jsonData.products || !jsonData.newproducts || !jsonData.storage || !jsonData.date) {
+            return new NextResponse("Missing required data", { status: 400 });
+        }
+
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet("Data");
 
