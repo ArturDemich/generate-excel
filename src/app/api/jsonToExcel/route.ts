@@ -27,9 +27,9 @@ export async function POST(req: NextRequest) {
 
         // Correct headers as per your requirement
         const headers = [
-            "product_id", "product_name", "characteristic_name", 
+            "product_id", "product_name", "characteristic_name",
             "characteristic_id", "qty", "isNewProduct",
-            "storage_name", "comment", "date", "number_doc", "storage_id", "id_doc" 
+            "storage_name", "comment", "date", "number_doc", "storage_id", "id_doc"
         ];
 
         worksheet.addRow(headers);
@@ -44,28 +44,26 @@ export async function POST(req: NextRequest) {
                 if (characteristics) {
                     characteristics.forEach((char: any) => {
                         const row = worksheet.addRow([
-                            productId, productName, char.name, char.id, 
-                            char.qty, isNewProduct, "", "", "", "", "", "",
-                            jsonData.storage.id, jsonData.storage.name, jsonData.comment
+                            productId, productName, char.name, char.id,
+                            char.qty, isNewProduct, "", "", "",
                         ]);
 
                         // Set dark orange color for product_name if isNewProduct is true
                         if (isNewProduct) {
                             row.getCell(2).font = { color: { argb: 'FF8C00' } };
-                            row.getCell(3).font = { color: { argb: 'FF8C00' } }; 
+                            row.getCell(3).font = { color: { argb: 'FF8C00' } };
                         }
                     });
                 } else if (characteristic) {
                     const row = worksheet.addRow([
-                        productId, productName, characteristic.name, characteristic.id, 
-                        qty, isNewProduct, "", "", "", "", "", "",
-                        jsonData.storage.id, jsonData.storage.name, jsonData.comment
+                        productId, productName, characteristic.name, characteristic.id,
+                        qty, isNewProduct, "", "", "",
                     ]);
 
                     // Set dark orange color for product_name if isNewProduct is true
                     if (isNewProduct) {
                         row.getCell(2).font = { color: { argb: 'FF8C00' } };
-                        row.getCell(3).font = { color: { argb: 'FF8C00' } };  
+                        row.getCell(3).font = { color: { argb: 'FF8C00' } };
                     }
                 }
             });
@@ -84,9 +82,9 @@ export async function POST(req: NextRequest) {
         firstRow.getCell(11).value = jsonData.storage.id;  // 'storage_id'
         firstRow.getCell(12).value = jsonData.id;  // 'id_doc'
 
-        const columnsToFit = [1, 4, 10, 11, 12]; 
-        columnsToFit.forEach((col) => {
-            worksheet.getColumn(col).width = 0; 
+        const columnsToFit = [1, 4, 10, 11, 12];
+        columnsToFit.forEach((colIndex) => {
+            worksheet.getColumn(colIndex).hidden = true;
         });
 
         const buffer = await workbook.xlsx.writeBuffer();
