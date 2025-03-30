@@ -13,7 +13,6 @@ const auth = new google.auth.GoogleAuth({
 });
 const drive = google.drive({ version: "v3", auth });
 
-
 export async function POST(req: NextRequest) {
     try {
         const jsonData = await req.json();
@@ -43,26 +42,41 @@ export async function POST(req: NextRequest) {
 
                 if (characteristics) {
                     characteristics.forEach((char: any) => {
-                        worksheet.addRow([
+                        const row = worksheet.addRow([
                             jsonData.id, jsonData.number, formatDate(jsonData.date),
                             jsonData.storage.id, jsonData.storage.name,
                             productId, productName, char.name, char.id,
                             char.qty, isNewProduct, jsonData.comment
                         ]);
+
+                        // Set dark orange color for product_name if isNewProduct is true
+                        if (isNewProduct) {
+                            row.getCell('product_name').font = { color: { argb: 'FF8C00' } };  // Dark Orange
+                        }
                     });
                 } else if (characteristic) {
-                    worksheet.addRow([
+                    const row = worksheet.addRow([
                         jsonData.id, jsonData.number, formatDate(jsonData.date),
                         jsonData.storage.id, jsonData.storage.name,
                         productId, productName, characteristic.name,
                         characteristic.id, qty, isNewProduct, jsonData.comment
                     ]);
+
+                    // Set dark orange color for product_name if isNewProduct is true
+                    if (isNewProduct) {
+                        row.getCell('product_name').font = { color: { argb: 'FF8C00' } };  // Dark Orange
+                    }
                 }
             });
         };
 
+        // Add products to sheet
         if (jsonData.products) addProductData(jsonData.products, false);
         if (jsonData.newproducts) addProductData(jsonData.newproducts, true);
+
+        // Add comment to the last column in the first row
+        const firstRow = worksheet.getRow(2); // The second row is where data starts
+        firstRow.getCell('comment').value = 'Storage Name, ID, Number, Date, Comment';  // Add static comment in first row
 
         const buffer = await workbook.xlsx.writeBuffer();
         const filePath = `/tmp/${jsonData.storage.name} ${formatDate(jsonData.date)}.xlsx`;
