@@ -25,21 +25,16 @@ export async function POST(req: NextRequest) {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet("Data");
 
-        // Define the column order
+        // Correct headers as per your requirement
         const headers = [
-            "id", "number", "date", "storage_id", "storage_name",
-            "product_id", "product_name", "characteristic_name",
-            "characteristic_id", "qty", "isNewProduct", "comment"
+            "product_id", "product_name", "characteristic_name", 
+            "characteristic_id", "qty", "isNewProduct",
+            "id_doc", "number_doc", "date", "storage_id", "storage_name", "comment"
         ];
+
         worksheet.addRow(headers);
 
-        // Get column indices from headers
-        const headerMap = headers.reduce((map, header, index) => {
-            map[header] = index + 1; // Excel columns are 1-based
-            return map;
-        }, {} as { [key: string]: number });
-
-        // Function to add data
+        // Function to add product data and color product_name
         const addProductData = (products: any[], isNewProduct = false) => {
             products.forEach((product) => {
                 const { product: productInfo, characteristics, characteristic, qty } = product;
@@ -49,28 +44,26 @@ export async function POST(req: NextRequest) {
                 if (characteristics) {
                     characteristics.forEach((char: any) => {
                         const row = worksheet.addRow([
-                            jsonData.id, jsonData.number, formatDate(jsonData.date),
-                            jsonData.storage.id, jsonData.storage.name,
-                            productId, productName, char.name, char.id,
-                            char.qty, isNewProduct, jsonData.comment
+                            productId, productName, char.name, char.id, 
+                            char.qty, isNewProduct, "", "", "", 
+                            jsonData.storage.id, jsonData.storage.name, jsonData.comment
                         ]);
 
                         // Set dark orange color for product_name if isNewProduct is true
                         if (isNewProduct) {
-                            row.getCell(headerMap['product_name']).font = { color: { argb: 'FF8C00' } };  // Dark Orange
+                            row.getCell(2).font = { color: { argb: 'FF8C00' } };  // Dark Orange for product_name (column 2)
                         }
                     });
                 } else if (characteristic) {
                     const row = worksheet.addRow([
-                        jsonData.id, jsonData.number, formatDate(jsonData.date),
-                        jsonData.storage.id, jsonData.storage.name,
-                        productId, productName, characteristic.name,
-                        characteristic.id, qty, isNewProduct, jsonData.comment
+                        productId, productName, characteristic.name, characteristic.id, 
+                        qty, isNewProduct, "", "", "", 
+                        jsonData.storage.id, jsonData.storage.name, jsonData.comment
                     ]);
 
                     // Set dark orange color for product_name if isNewProduct is true
                     if (isNewProduct) {
-                        row.getCell(headerMap['product_name']).font = { color: { argb: 'FF8C00' } };  // Dark Orange
+                        row.getCell(2).font = { color: { argb: 'FF8C00' } };  // Dark Orange for product_name (column 2)
                     }
                 }
             });
@@ -80,9 +73,14 @@ export async function POST(req: NextRequest) {
         if (jsonData.products) addProductData(jsonData.products, false);
         if (jsonData.newproducts) addProductData(jsonData.newproducts, true);
 
-        // Add comment to the last column in the first row
-        const firstRow = worksheet.getRow(2); // The second row is where data starts
-        firstRow.getCell(headerMap['comment']).value = 'Storage Name, ID, Number, Date, Comment';  // Add static comment in first row
+        // Add static values for the first row
+        const firstRow = worksheet.getRow(2);  // Second row, because the first is the header
+        firstRow.getCell(7).value = jsonData.id;  // 'id_doc'
+        firstRow.getCell(8).value = jsonData.number;  // 'number_doc'
+        firstRow.getCell(9).value = formatDate(jsonData.date);  // 'date'
+        firstRow.getCell(10).value = jsonData.storage.id;  // 'storage_id'
+        firstRow.getCell(11).value = jsonData.storage.name;  // 'storage_name'
+        firstRow.getCell(12).value = jsonData.comment;  // 'comment'
 
         const buffer = await workbook.xlsx.writeBuffer();
         const filePath = `/tmp/${jsonData.storage.name} ${formatDate(jsonData.date)}.xlsx`;
