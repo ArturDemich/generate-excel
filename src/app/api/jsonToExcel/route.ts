@@ -33,6 +33,12 @@ export async function POST(req: NextRequest) {
         ];
         worksheet.addRow(headers);
 
+        // Get column indices from headers
+        const headerMap = headers.reduce((map, header, index) => {
+            map[header] = index + 1; // Excel columns are 1-based
+            return map;
+        }, {} as { [key: string]: number });
+
         // Function to add data
         const addProductData = (products: any[], isNewProduct = false) => {
             products.forEach((product) => {
@@ -51,7 +57,7 @@ export async function POST(req: NextRequest) {
 
                         // Set dark orange color for product_name if isNewProduct is true
                         if (isNewProduct) {
-                            row.getCell('product_name').font = { color: { argb: 'FF8C00' } };  // Dark Orange
+                            row.getCell(headerMap['product_name']).font = { color: { argb: 'FF8C00' } };  // Dark Orange
                         }
                     });
                 } else if (characteristic) {
@@ -64,7 +70,7 @@ export async function POST(req: NextRequest) {
 
                     // Set dark orange color for product_name if isNewProduct is true
                     if (isNewProduct) {
-                        row.getCell('product_name').font = { color: { argb: 'FF8C00' } };  // Dark Orange
+                        row.getCell(headerMap['product_name']).font = { color: { argb: 'FF8C00' } };  // Dark Orange
                     }
                 }
             });
@@ -76,7 +82,7 @@ export async function POST(req: NextRequest) {
 
         // Add comment to the last column in the first row
         const firstRow = worksheet.getRow(2); // The second row is where data starts
-        firstRow.getCell('comment').value = 'Storage Name, ID, Number, Date, Comment';  // Add static comment in first row
+        firstRow.getCell(headerMap['comment']).value = 'Storage Name, ID, Number, Date, Comment';  // Add static comment in first row
 
         const buffer = await workbook.xlsx.writeBuffer();
         const filePath = `/tmp/${jsonData.storage.name} ${formatDate(jsonData.date)}.xlsx`;
