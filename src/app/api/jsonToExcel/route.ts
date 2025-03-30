@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
         const headers = [
             "product_id", "product_name", "characteristic_name", 
             "characteristic_id", "qty", "isNewProduct",
-            "id_doc", "number_doc", "date", "storage_id", "storage_name", "comment"
+            "storage_name", "comment", "date", "number_doc", "storage_id", "id_doc" 
         ];
 
         worksheet.addRow(headers);
@@ -45,25 +45,27 @@ export async function POST(req: NextRequest) {
                     characteristics.forEach((char: any) => {
                         const row = worksheet.addRow([
                             productId, productName, char.name, char.id, 
-                            char.qty, isNewProduct, "", "", "", 
+                            char.qty, isNewProduct, "", "", "", "", "", "",
                             jsonData.storage.id, jsonData.storage.name, jsonData.comment
                         ]);
 
                         // Set dark orange color for product_name if isNewProduct is true
                         if (isNewProduct) {
-                            row.getCell(2).font = { color: { argb: 'FF8C00' } };  // Dark Orange for product_name (column 2)
+                            row.getCell(2).font = { color: { argb: 'FF8C00' } };
+                            row.getCell(3).font = { color: { argb: 'FF8C00' } }; 
                         }
                     });
                 } else if (characteristic) {
                     const row = worksheet.addRow([
                         productId, productName, characteristic.name, characteristic.id, 
-                        qty, isNewProduct, "", "", "", 
+                        qty, isNewProduct, "", "", "", "", "", "",
                         jsonData.storage.id, jsonData.storage.name, jsonData.comment
                     ]);
 
                     // Set dark orange color for product_name if isNewProduct is true
                     if (isNewProduct) {
-                        row.getCell(2).font = { color: { argb: 'FF8C00' } };  // Dark Orange for product_name (column 2)
+                        row.getCell(2).font = { color: { argb: 'FF8C00' } };
+                        row.getCell(3).font = { color: { argb: 'FF8C00' } };  
                     }
                 }
             });
@@ -75,22 +77,27 @@ export async function POST(req: NextRequest) {
 
         // Add static values for the first row
         const firstRow = worksheet.getRow(2);  // Second row, because the first is the header
-        firstRow.getCell(7).value = jsonData.id;  // 'id_doc'
-        firstRow.getCell(8).value = jsonData.number;  // 'number_doc'
-        firstRow.getCell(9).value = formatDate(jsonData.date);  // 'date'
-        firstRow.getCell(10).value = jsonData.storage.id;  // 'storage_id'
-        firstRow.getCell(11).value = jsonData.storage.name;  // 'storage_name'
-        firstRow.getCell(12).value = jsonData.comment;  // 'comment'
+        firstRow.getCell(7).value = jsonData.storage.name;  // 'storage_name'
+        firstRow.getCell(8).value = jsonData.comment;  // 'comment'
+        firstRow.getCell(9).value = formatDateTime(jsonData.date);  // 'date'
+        firstRow.getCell(10).value = jsonData.number;  // 'number_doc'
+        firstRow.getCell(11).value = jsonData.storage.id;  // 'storage_id'
+        firstRow.getCell(12).value = jsonData.id;  // 'id_doc'
+
+        const columnsToFit = [1, 4, 10, 11, 12]; 
+        columnsToFit.forEach((col) => {
+            worksheet.getColumn(col).width = 0; 
+        });
 
         const buffer = await workbook.xlsx.writeBuffer();
-        const filePath = `/tmp/${jsonData.storage.name} ${formatDate(jsonData.date)}.xlsx`;
+        const filePath = `/tmp/${jsonData.storage.name} ${formatDateTime(jsonData.date)}.xlsx`;
 
         fs.writeFileSync(filePath, Buffer.from(buffer));
 
         // Upload to Google Drive
         const driveResponse = await drive.files.create({
             requestBody: {
-                name: `${jsonData.storage.name} ${formatDate(jsonData.date)}.xlsx`,
+                name: `${jsonData.storage.name} ${formatDateTime(jsonData.date)}.xlsx`,
                 parents: [process.env.GOOGLE_DRIVE_FOLDER_ID || ""], // Google Drive folder ID
             },
             media: {
@@ -111,10 +118,12 @@ export async function POST(req: NextRequest) {
         console.error("Error:", error);
         return new NextResponse(`Error: ${error.message}`, { status: 500 });
     }
-}
+};
 
 // Function to format date
-function formatDate(dateStr: string) {
+
+function formatDateTime(dateStr: string) {
     const [year, day, month] = dateStr.split(/[-\s:]+/);
-    return `${day}.${month}.${year}`;
-}
+    const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return `${day}.${month}.${year}-${time}`;
+};
