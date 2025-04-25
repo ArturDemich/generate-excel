@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
             "characteristic_id",
             "unit_id",
             "doc_comment",
-            "date", 
+            "date",
             "number_doc", "storage_id", "id_doc"
         ];
 
@@ -52,17 +52,19 @@ export async function POST(req: NextRequest) {
                 const productId = productInfo.id;
                 const productName = productInfo.name;
 
-                 if (characteristic) {
+                if (characteristic) {
                     const row = worksheet.addRow([
-                        productName, 
-                        characteristic.name,
+                        productName || "",
+                        characteristic.name || "",
                         qty,
                         saleQty,
-                        unit.name,
-                        plantComment,
+                        unit?.name || "", 
+                        plantComment || "",
                         isNewProduct,
                         storageName,
-                        productId,  characteristic.id, unit.id,
+                        productId || "",
+                        characteristic.id || "",
+                        unit?.id || "", 
                         "", "", "", "", "", "",
                     ]);
 
