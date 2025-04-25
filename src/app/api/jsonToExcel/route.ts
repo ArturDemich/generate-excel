@@ -27,37 +27,43 @@ export async function POST(req: NextRequest) {
 
         // Correct headers as per your requirement
         const headers = [
-            "product_id", "product_name", "characteristic_name",
-            "characteristic_id", "qty", "isNewProduct",
-            "storage_name", "comment", "date", "number_doc", "storage_id", "id_doc"
+            "product_name",
+            "characteristic_name",
+            "qty",
+            "saleQty",
+            "unit_name",
+            "plantComment",
+            "isNewProduct",
+            "storage_name",
+            "product_id",
+            "characteristic_id",
+            "unit_id",
+            "doc_comment",
+            "date", 
+            "number_doc", "storage_id", "id_doc"
         ];
 
         worksheet.addRow(headers);
 
         // Function to add product data and color product_name
-        const addProductData = (products: any[], isNewProduct = false) => {
+        const addProductData = (products: any[], isNewProduct = false, storageName: string) => {
             products.forEach((product) => {
-                const { product: productInfo, characteristics, characteristic, qty } = product;
+                const { product: productInfo, characteristic, unit, qty, saleQty, plantComment } = product;
                 const productId = productInfo.id;
                 const productName = productInfo.name;
 
-                if (characteristics) {
-                    characteristics.forEach((char: any) => {
-                        const row = worksheet.addRow([
-                            productId, productName, char.name, char.id,
-                            char.qty, isNewProduct, "", "", "",
-                        ]);
-
-                        // Set dark orange color for product_name if isNewProduct is true
-                        if (isNewProduct) {
-                            row.getCell(2).font = { color: { argb: 'FF8C00' } };
-                            row.getCell(3).font = { color: { argb: 'FF8C00' } };
-                        }
-                    });
-                } else if (characteristic) {
+                 if (characteristic) {
                     const row = worksheet.addRow([
-                        productId, productName, characteristic.name, characteristic.id,
-                        qty, isNewProduct, "", "", "",
+                        productName, 
+                        characteristic.name,
+                        qty,
+                        saleQty,
+                        unit.name,
+                        plantComment,
+                        isNewProduct,
+                        storageName,
+                        productId,  characteristic.id, unit.id,
+                        "", "", "", "", "", "",
                     ]);
 
                     // Set dark orange color for product_name if isNewProduct is true
@@ -70,19 +76,18 @@ export async function POST(req: NextRequest) {
         };
 
         // Add products to sheet
-        if (jsonData.products) addProductData(jsonData.products, false);
-        if (jsonData.newproducts) addProductData(jsonData.newproducts, true);
+        if (jsonData.products) addProductData(jsonData.products, false, jsonData.storage.name);
+        if (jsonData.newproducts) addProductData(jsonData.newproducts, true, jsonData.storage.name);
 
         // Add static values for the first row
         const firstRow = worksheet.getRow(2);  // Second row, because the first is the header
-        firstRow.getCell(7).value = jsonData.storage.name;  // 'storage_name'
-        firstRow.getCell(8).value = jsonData.comment;  // 'comment'
-        firstRow.getCell(9).value = formatDateTime(jsonData.date);  // 'date'
-        firstRow.getCell(10).value = jsonData.number;  // 'number_doc'
-        firstRow.getCell(11).value = jsonData.storage.id;  // 'storage_id'
-        firstRow.getCell(12).value = jsonData.id;  // 'id_doc'
+        firstRow.getCell(12).value = jsonData.comment;  // 'comment'
+        firstRow.getCell(13).value = formatDateTime(jsonData.date);  // 'date'
+        firstRow.getCell(14).value = jsonData.number;  // 'number_doc'
+        firstRow.getCell(15).value = jsonData.storage.id;  // 'storage_id'
+        firstRow.getCell(16).value = jsonData.id;  // 'id_doc'
 
-        const columnsToFit = [1, 4, 10, 11, 12];
+        const columnsToFit = [9, 10, 11];
         columnsToFit.forEach((colIndex) => {
             worksheet.getColumn(colIndex).hidden = true;
         });
