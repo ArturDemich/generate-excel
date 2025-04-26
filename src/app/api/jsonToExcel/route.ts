@@ -67,11 +67,12 @@ export async function POST(req: NextRequest) {
                         unit?.id || "", 
                         "", "", "", "", "", "",
                     ]);
+                    row.getCell(4).font = { color: { argb: 'FF00A100' } };
 
                     // Set dark orange color for product_name if isNewProduct is true
                     if (isNewProduct) {
+                        row.getCell(1).font = { color: { argb: 'FF8C00' } };
                         row.getCell(2).font = { color: { argb: 'FF8C00' } };
-                        row.getCell(3).font = { color: { argb: 'FF8C00' } };
                     }
                 }
             });
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
         firstRow.getCell(15).value = jsonData.storage.id;  // 'storage_id'
         firstRow.getCell(16).value = jsonData.id;  // 'id_doc'
 
-        const columnsToFit = [9, 10, 11];
+        const columnsToFit = [9, 10, 11, 15, 16];
         columnsToFit.forEach((colIndex) => {
             worksheet.getColumn(colIndex).hidden = true;
         });
